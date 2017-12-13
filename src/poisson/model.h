@@ -77,7 +77,7 @@ namespace model
                               plot_data  & data)
     {
         data.world->xmin = - (data.world->xmax = params.a * params.k);
-        data.world->xmin = - (data.world->ymax = params.b * params.k);
+        data.world->ymin = - (data.world->ymax = params.b * params.k);
     }
 
     inline static plot::drawable::ptr_t make_root_drawable
@@ -527,10 +527,10 @@ namespace model
                     {
                         r = xyxy(vp,
                         {
-                            ((double)j - 0.5) * params.dx,
-                            ((double)j + 0.5) * params.dx,
-                            ((double)i - 0.5) * params.dy,
-                            ((double)i + 0.5) * params.dy
+                            ((double)j - params.a * params.k - 0.5) * params.dx,
+                            ((double)j - params.a * params.k + 0.5) * params.dx,
+                            ((double)i - params.b * params.k - 0.5) * params.dy,
+                            ((double)i - params.b * params.k + 0.5) * params.dy
                         });
 
                         if (m & material::border)
