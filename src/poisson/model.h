@@ -245,8 +245,16 @@ namespace model
                 else
                     d.area_map[i][j]  = material::dielectr;
 
-                if (is_capacitor && (j < Y_n)) d.fn[i][j] = p.q1;
-                if (is_capacitor && (j > Y_n)) d.fn[i][j] = p.q2;
+                if (is_capacitor && (j < Y_n))
+                {
+                    d.fn[i][j] = p.q1;
+                    d.area_map[i][j] |= material::cap1;
+                }
+                if (is_capacitor && (j > Y_n))
+                {
+                    d.fn[i][j] = p.q2;
+                    d.area_map[i][j] |= material::cap2;
+                }
             }
         }
 
