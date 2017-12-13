@@ -103,6 +103,7 @@
     <Text Include="ReadMe.txt" />
   </ItemGroup>
   <ItemGroup>
+    <ClInclude Include="plot.h" />
     <ClInclude Include="poisson.h" />
     <ClInclude Include="poissonDlg.h" />
     <ClInclude Include="Resource.h" />
