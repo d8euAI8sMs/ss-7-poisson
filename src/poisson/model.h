@@ -531,10 +531,10 @@ namespace model
                     {
                         r = xyxy(vp,
                         {
-                            ((double)j - params.a * params.k - 0.5) * params.dx,
-                            ((double)j - params.a * params.k + 0.5) * params.dx,
-                            ((double)i - params.b * params.k - 0.5) * params.dy,
-                            ((double)i - params.b * params.k + 0.5) * params.dy
+                            ((double)j - 0.5) * params.dx - params.a * params.k,
+                            ((double)j + 0.5) * params.dx - params.a * params.k,
+                            ((double)i - 0.5) * params.dy - params.b * params.k,
+                            ((double)i + 0.5) * params.dy - params.b * params.k
                         });
 
                         if (m & material::border)
