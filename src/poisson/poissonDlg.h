@@ -4,6 +4,9 @@
 #pragma once
 
 #include <util/common/gui/SimulationDialog.h>
+#include <util/common/plot/PlotStatic.h>
+
+#include "model.h"
 
 // CPoissonDlg dialog
 class CPoissonDlg : public CSimulationDialog
@@ -18,6 +21,11 @@ public:
 	protected:
 	virtual void DoDataExchange(CDataExchange* pDX);	// DDX/DDV support
 
+public:
+    model::parameters p;
+    model::chasing_data d;
+    model::plot_data plt;
+    std::vector < std::vector < double > > P;
 
 // Implementation
 protected:
@@ -28,4 +36,12 @@ protected:
 	afx_msg void OnPaint();
 	afx_msg HCURSOR OnQueryDragIcon();
 	DECLARE_MESSAGE_MAP()
+public:
+    double dA;
+    double dE;
+    double nA;
+    double nE;
+    BOOL A;
+    BOOL E;
+    PlotStatic plot;
 };
