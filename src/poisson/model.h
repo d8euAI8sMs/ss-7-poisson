@@ -339,10 +339,8 @@ namespace model
             {
                 return make_normal_coefs(i, j, dir, p.eps);
             }
-            else
-            {
-                return { 0, 0, 1, 0 };
-            }
+
+            return { 0, 0, 1, 0 };
         };
     }
 
