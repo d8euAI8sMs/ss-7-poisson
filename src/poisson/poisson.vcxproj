@@ -103,6 +103,7 @@
     <Text Include="ReadMe.txt" />
   </ItemGroup>
   <ItemGroup>
+    <ClInclude Include="model.h" />
     <ClInclude Include="plot.h" />
     <ClInclude Include="poisson.h" />
     <ClInclude Include="poissonDlg.h" />
@@ -111,6 +112,7 @@
     <ClInclude Include="targetver.h" />
   </ItemGroup>
   <ItemGroup>
+    <ClCompile Include="isoline.cpp" />
     <ClCompile Include="poisson.cpp" />
     <ClCompile Include="poissonDlg.cpp" />
     <ClCompile Include="stdafx.cpp">

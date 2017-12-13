@@ -33,6 +33,9 @@
     <ClInclude Include="Resource.h">
       <Filter>Header Files</Filter>
     </ClInclude>
+    <ClInclude Include="model.h">
+      <Filter>Header Files</Filter>
+    </ClInclude>
     <ClInclude Include="plot.h">
       <Filter>Header Files</Filter>
     </ClInclude>
@@ -45,6 +48,9 @@
       <Filter>Source Files</Filter>
     </ClCompile>
     <ClCompile Include="stdafx.cpp">
+      <Filter>Source Files</Filter>
+    </ClCompile>
+    <ClCompile Include="isoline.cpp">
       <Filter>Source Files</Filter>
     </ClCompile>
   </ItemGroup>
