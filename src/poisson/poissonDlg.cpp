@@ -49,12 +49,12 @@ void CPoissonDlg::DoDataExchange(CDataExchange* pDX)
     DDX_Text(pDX, IDC_EDIT5, p.d_c);
     DDX_Text(pDX, IDC_EDIT7, p.x_c);
     DDX_Text(pDX, IDC_EDIT8, p.y_c);
-    DDX_Text(pDX, IDC_EDIT6, p.a_c);
+    DDX_Text(pDX, IDC_EDIT16, p.a_c);
     DDX_Text(pDX, IDC_EDIT17, p.b_c);
     DDX_Text(pDX, IDC_EDIT9, p.dt);
     DDX_Text(pDX, IDC_EDIT10, p.dx);
     DDX_Text(pDX, IDC_EDIT11, p.dy);
-    DDX_Text(pDX, IDC_EDIT16, p.eps);
+    DDX_Text(pDX, IDC_EDIT6, p.eps);
     DDX_Text(pDX, IDC_EDIT18, p.q1);
     DDX_Text(pDX, IDC_EDIT19, p.q2);
     DDX_Control(pDX, IDC_PLOT, plot);
