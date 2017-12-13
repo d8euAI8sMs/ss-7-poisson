@@ -45,7 +45,11 @@ public:
     double nE;
     BOOL A;
     BOOL E;
+    bool A_bool;
+    bool E_bool;
     PlotStatic plot;
     afx_msg void OnBnClickedButton1();
     afx_msg void OnBnClickedButton2();
+    afx_msg void OnBnClickedCheck1();
+    afx_msg void OnBnClickedCheck2();
 };

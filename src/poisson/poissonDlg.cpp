@@ -25,6 +25,8 @@ CPoissonDlg::CPoissonDlg(CWnd* pParent /*=NULL*/)
     , nE(10)
     , A(TRUE)
     , E(TRUE)
+    , A_bool(true)
+    , E_bool(true)
     , p(make_default_parameters())
 {
 	m_hIcon = AfxGetApp()->LoadIcon(IDR_MAINFRAME);
@@ -62,6 +64,8 @@ BEGIN_MESSAGE_MAP(CPoissonDlg, CSimulationDialog)
 	ON_WM_QUERYDRAGICON()
     ON_BN_CLICKED(IDC_BUTTON1, &CPoissonDlg::OnBnClickedButton1)
     ON_BN_CLICKED(IDC_BUTTON2, &CPoissonDlg::OnBnClickedButton2)
+    ON_BN_CLICKED(IDC_CHECK1, &CPoissonDlg::OnBnClickedCheck1)
+    ON_BN_CLICKED(IDC_CHECK2, &CPoissonDlg::OnBnClickedCheck2)
 END_MESSAGE_MAP()
 
 
@@ -136,4 +140,17 @@ void CPoissonDlg::OnBnClickedButton2()
 void CPoissonDlg::OnSimulation()
 {
     CSimulationDialog::OnSimulation();
+}
+
+void CPoissonDlg::OnBnClickedCheck1()
+{
+    UpdateData(TRUE);
+    A_bool = (A != 0);
+}
+
+
+void CPoissonDlg::OnBnClickedCheck2()
+{
+    UpdateData(TRUE);
+    E_bool = (E != 0);
 }
