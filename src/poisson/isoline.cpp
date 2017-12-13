@@ -62,24 +62,24 @@ namespace
         {
             return
             {
-                ((T0 - T[a.x][a.y]) / (T[b.x][b.y] - T[a.x][a.y]) * ((int) b.y - (int) a.y) + a.y) * p.dx,
-                a.x * p.dy
+                - p.b * p.k + ((T0 - T[a.x][a.y]) / (T[b.x][b.y] - T[a.x][a.y]) * ((int) b.y - (int) a.y) + a.y) * p.dx,
+                - p.a * p.k + a.x * p.dy
             }; // { x, y }
         }
         else if (a.y == b.y)
         {
             return
             {
-                a.y * p.dx,
-                ((T0 - T[a.x][a.y]) / (T[b.x][b.y] - T[a.x][a.y]) * ((int) b.x - (int) a.x) + a.x) * p.dy
+                - p.b * p.k + a.y * p.dx,
+                - p.a * p.k + ((T0 - T[a.x][a.y]) / (T[b.x][b.y] - T[a.x][a.y]) * ((int) b.x - (int) a.x) + a.x) * p.dy
             }; // { x, y }
         }
         else
         {
             return
             {
-                ((T0 - T[a.x][a.y]) / (T[b.x][b.y] - T[a.x][a.y]) * ((int) b.y - (int) a.y) + a.y) * p.dx,
-                ((T0 - T[a.x][a.y]) / (T[b.x][b.y] - T[a.x][a.y]) * ((int) b.x - (int) a.x) + a.x) * p.dy
+                - p.b * p.k + ((T0 - T[a.x][a.y]) / (T[b.x][b.y] - T[a.x][a.y]) * ((int) b.y - (int) a.y) + a.y) * p.dx,
+                - p.a * p.k + ((T0 - T[a.x][a.y]) / (T[b.x][b.y] - T[a.x][a.y]) * ((int) b.x - (int) a.x) + a.x) * p.dy
             }; // { x, y }
         }
     }
