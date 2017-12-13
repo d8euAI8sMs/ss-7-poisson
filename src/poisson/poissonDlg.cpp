@@ -60,6 +60,8 @@ void CPoissonDlg::DoDataExchange(CDataExchange* pDX)
 BEGIN_MESSAGE_MAP(CPoissonDlg, CSimulationDialog)
 	ON_WM_PAINT()
 	ON_WM_QUERYDRAGICON()
+    ON_BN_CLICKED(IDC_BUTTON1, &CPoissonDlg::OnBnClickedButton1)
+    ON_BN_CLICKED(IDC_BUTTON2, &CPoissonDlg::OnBnClickedButton2)
 END_MESSAGE_MAP()
 
 
@@ -115,4 +117,23 @@ void CPoissonDlg::OnPaint()
 HCURSOR CPoissonDlg::OnQueryDragIcon()
 {
 	return static_cast<HCURSOR>(m_hIcon);
+}
+
+
+void CPoissonDlg::OnBnClickedButton1()
+{
+    UpdateData(TRUE);
+
+    StartSimulationThread();
+}
+
+
+void CPoissonDlg::OnBnClickedButton2()
+{
+    StopSimulationThread();
+}
+
+void CPoissonDlg::OnSimulation()
+{
+    CSimulationDialog::OnSimulation();
 }

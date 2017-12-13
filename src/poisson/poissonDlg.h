@@ -27,6 +27,8 @@ public:
     model::plot_data plt;
     std::vector < std::vector < double > > P;
 
+    virtual void OnSimulation();
+
 // Implementation
 protected:
 	HICON m_hIcon;
@@ -44,4 +46,6 @@ public:
     BOOL A;
     BOOL E;
     PlotStatic plot;
+    afx_msg void OnBnClickedButton1();
+    afx_msg void OnBnClickedButton2();
 };
