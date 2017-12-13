@@ -76,14 +76,28 @@ BOOL CPoissonDlg::OnInitDialog()
 {
 	CSimulationDialog::OnInitDialog();
 
-    adjust(p, plt);
-
 	// Set the icon for this dialog.  The framework does this automatically
 	//  when the application's main window is not a dialog
 	SetIcon(m_hIcon, TRUE);			// Set big icon
 	SetIcon(m_hIcon, FALSE);		// Set small icon
 
 	// TODO: Add extra initialization here
+
+    adjust(p, plt);
+    make_chasing_data(d, p);
+    P.clear();
+    P.resize(d.n, std::vector < double > (d.m));
+
+    plot.plot_layer.with(make_root_drawable(plt, {
+        custom_drawable::create(make_system_painter(p, d, P))
+    }));
+
+    plot.background = palette::brush();
+    plot.triple_buffered = true;
+
+    plot.RedrawBuffer();
+    plot.SwapBuffers();
+    plot.RedrawWindow();
 
 	return TRUE;  // return TRUE  unless you set the focus to a control
 }
