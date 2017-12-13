@@ -498,9 +498,7 @@ namespace model
 
     inline static plot::painter_t make_system_painter(const parameters & params,
                                                       const chasing_data & d,
-                                                      const std::vector < std::vector < double > > & T,
-                                                      double & max_heat_value,
-                                                      bool & draw_heat_map)
+                                                      const std::vector < std::vector < double > > & T)
     {
         return [&] (CDC & dc, const plot::viewport & vp)
         {
