@@ -154,6 +154,23 @@ void CPoissonDlg::OnBnClickedButton2()
 
 void CPoissonDlg::OnSimulation()
 {
+    adjust(p, plt);
+
+    make_chasing_data(d, p);
+
+    P.clear();
+    P.resize(d.n, std::vector < double > (d.m));
+
+    while (m_bWorking)
+    {
+        chasing_solve(d, p, P);
+        plt.data->clear();
+        find_isolines(P, dA, *plt.data, d.n, d.m, p, make_material_based_stencil(d), nA);
+        plot.RedrawBuffer();
+        plot.SwapBuffers();
+        Invoke([&] () { plot.RedrawWindow(); });
+    }
+
     CSimulationDialog::OnSimulation();
 }
 
