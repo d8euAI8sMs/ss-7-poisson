@@ -173,19 +173,16 @@ void CPoissonDlg::OnSimulation()
             if ((d.area_map[i][j] & material::border)
                 && (d.area_map[i][j] & material::metal))
             {
-                if ((d.area_map[i][j] & material::border_i))
+                if ((d.area_map[i][j] & material::border_i)
+                    && (d.area_map[i][j] & (material::cap1 | material::cap2 | material::faraday_re | material::faraday_im)))
                 {
-                    if (get_material_at(d, { (int) i - 1, (int) j }) & material::metal)
-                        hint.emplace_back(i + 1, j);
-                    else if (get_material_at(d, { (int) i + 1, (int) j }) & material::metal)
-                        hint.emplace_back(i - 1, j);
+                    hint.emplace_back(i + 1, j);
+                    hint.emplace_back(i - 1, j);
                 }
-                else
+                else if ((d.area_map[i][j] & (material::cap1 | material::cap2 | material::faraday_re | material::faraday_im)))
                 {
-                    if (get_material_at(d, { (int) i, (int) j - 1 }) & material::metal)
-                        hint.emplace_back(i, j + 1);
-                    else if (get_material_at(d, { (int) i, (int) j + 1 }) & material::metal)
-                        hint.emplace_back(i, j - 1);
+                    hint.emplace_back(i, j + 1);
+                    hint.emplace_back(i, j - 1);
                 }
             }
         }
