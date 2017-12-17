@@ -29,6 +29,7 @@ CPoissonDlg::CPoissonDlg(CWnd* pParent /*=NULL*/)
     , E_bool(true)
     , p(make_default_parameters())
     , plt(make_plot_data())
+    , plt2(make_plot_data(RGB(155, 155, 155)))
 {
 	m_hIcon = AfxGetApp()->LoadIcon(IDR_MAINFRAME);
 }
@@ -89,7 +90,8 @@ BOOL CPoissonDlg::OnInitDialog()
     P.resize(d.n, std::vector < double > (d.m));
 
     plot.plot_layer.with(make_root_drawable(plt, {
-        custom_drawable::create(make_system_painter(p, d, P))
+        custom_drawable::create(make_system_painter(p, d, P)),
+        plt2.plot
     }));
 
     plot.background = palette::brush();
@@ -161,11 +163,40 @@ void CPoissonDlg::OnSimulation()
     P.clear();
     P.resize(d.n, std::vector < double > (d.m));
 
+    std::vector < plot::point < size_t > > hint;
+
+    for (size_t i = 0; i < d.n; ++i)
+    {
+        for (size_t j = 0; j < d.m; ++j)
+        {
+            if ((d.area_map[i][j] & material::border)
+                && (d.area_map[i][j] & material::metal))
+            {
+                if ((d.area_map[i][j] & material::border_i))
+                {
+                    if (get_material_at(d, { (int) i - 1, (int) j }) & material::metal)
+                        hint.emplace_back(i + 1, j);
+                    else if (get_material_at(d, { (int) i + 1, (int) j }) & material::metal)
+                        hint.emplace_back(i - 1, j);
+                }
+                else
+                {
+                    if (get_material_at(d, { (int) i, (int) j - 1 }) & material::metal)
+                        hint.emplace_back(i, j + 1);
+                    else if (get_material_at(d, { (int) i, (int) j + 1 }) & material::metal)
+                        hint.emplace_back(i, j - 1);
+                }
+            }
+        }
+    }
+
     while (m_bWorking)
     {
         chasing_solve(d, p, P);
         plt.data->clear();
+        plt2.data->clear();
         find_isolines(P, dA, *plt.data, d.n, d.m, p, make_material_based_stencil(d), nA);
+        find_field_lines(P, *plt2.data, d.n, d.m, p, make_material_based_stencil(d), hint);
         plot.RedrawBuffer();
         plot.SwapBuffers();
         Invoke([&] () { plot.RedrawWindow(); });

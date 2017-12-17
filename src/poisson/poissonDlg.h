@@ -25,6 +25,7 @@ public:
     model::parameters p;
     model::chasing_data d;
     model::plot_data plt;
+    model::plot_data plt2;
     std::vector < std::vector < double > > P;
 
     virtual void OnSimulation();
