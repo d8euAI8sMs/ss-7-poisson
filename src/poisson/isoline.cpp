@@ -28,6 +28,8 @@ namespace
     {
         size_t i, j, o;
 
+        triangle () = default;
+
         triangle (size_t i, size_t j, size_t o)
             : i(i), j(j), o(o)
         {
@@ -384,5 +386,156 @@ void model::find_isolines
 
             path.clear();
         }
+    }
+}
+
+inline static plot::point < double > gradiend_at
+(
+    const std::vector < std::vector < double > > & T,
+    size_t n, size_t m,
+    const triangle & t
+)
+{
+    size_t i = t.i, j = t.j;
+
+    double ni, nj;
+
+    if (t.o == 0)
+    {
+        ni = T[i][j + 1] - T[i][j];
+        nj = T[i + 1][j] - T[i][j];
+    }
+    else
+    {
+        ni = - (T[i + 1][j] - T[i + 1][j + 1]);
+        nj = - (T[i][j + 1] - T[i + 1][j + 1]);
+    }
+
+    double norm = std::sqrt(ni * ni + nj * nj);
+
+    if (!isfinite(ni / norm) || !isfinite(nj / norm))
+    {
+        return { 1, 0 };
+    }
+
+    return { ni / norm, nj / norm };
+}
+
+inline static triangle get_containing_triangle(plot::point < double > p)
+{
+    size_t i = (size_t) std::trunc(p.y);
+    size_t j = (size_t) std::trunc(p.x);
+
+    return { i, j, ((p.y - (double)j) < (1 - (p.x - (double) i))) ? 0 : 1u };
+}
+
+inline static bool next_point
+(
+    const std::vector < std::vector < double > > & T,
+    const std::vector < std::vector < std::array < owning_type, 2 > > > & visited,
+    size_t n, size_t m,
+    std::pair < triangle, plot::point < double > > & cur,
+    bool inv
+)
+{
+    auto & t = std::get<0>(cur);
+    auto & p = std::get<1>(cur);
+
+    auto ngrad = gradiend_at(T, n, m, t);
+
+    const double d = (inv ? -0.1 : 0.1);
+
+    auto c = t;
+
+    do
+    {
+        p = { p.x + d * ngrad.x, p.y + d * ngrad.y };
+        t = get_containing_triangle(p);
+    } while ((c.i == t.i) && (c.j == t.j) && (c.o == t.o));
+
+    if (visited[t.i][t.j][t.o] == owning_type::our) return false;
+
+    return true;
+}
+
+void model::find_field_lines
+(
+    const std::vector < std::vector < double > > & T,
+    std::vector < std::vector < plot::point < double > > > & out,
+    size_t n, size_t m,
+    const parameters & p,
+    stencil_fn stencil,
+    std::vector < plot::point < size_t > > hint
+)
+{
+    std::vector < std::vector < std::array < owning_type, 2 > > > visited(
+        n, std::vector < std::array < owning_type, 2 > >(m));
+
+    std::vector < triangle > path;
+    std::vector < plot::point < double > > isoline;
+
+    for each (auto p0 in hint)
+    {
+        if
+        (
+            (p0.x <= 0)
+         || (p0.y <= 0)
+         || (p0.x >= (n - 1))
+         || (p0.y >= (m - 1))
+         || !stencil(p0.x, p0.y)
+        ) continue;
+
+        std::pair < triangle, plot::point < double > > cur;
+
+        auto & t = std::get<0>(cur);
+
+        bool success;
+
+        visited[p0.x][p0.y][0] = owning_type::our;
+
+        bool inv = true;
+
+        // two iterations (in forward and backward direction)
+
+        do
+        {
+            inv = !inv;
+
+            cur =
+            {
+                { p0.x, p0.y, 0 },
+                { (double) p0.y, (double) p0.x }
+            };
+
+            path.push_back(std::get<0>(cur));
+            isoline.emplace_back(
+                - p.a * p.k + std::get<1>(cur).x * p.dx,
+                - p.b * p.k + std::get<1>(cur).y * p.dy);
+
+            do
+            {
+                success = next_point(T, visited, n, m, cur, inv);
+                if (success)
+                {
+                    visited[t.i][t.j][t.o] = owning_type::our;
+                    path.push_back(std::get<0>(cur));
+                    isoline.emplace_back(
+                        - p.a * p.k + std::get<1>(cur).x * p.dx,
+                        - p.b * p.k + std::get<1>(cur).y * p.dy);
+                }
+            }
+            while ((t.i > 0) && (t.j > 0) && (t.i < (n - 1)) && (t.j < (m - 1))
+                     && success && stencil(t.i, t.j));
+
+            out.push_back(std::move(isoline));
+
+            for each (auto & t in path)
+            {
+                visited[t.i][t.j][t.o] = owning_type::their;
+            }
+
+            path.clear();
+        }
+        while (!inv);
     }
 }

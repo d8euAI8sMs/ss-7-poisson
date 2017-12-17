@@ -504,6 +504,16 @@ namespace model
         size_t max_points_in_stack = 100000
     );
 
+    void find_field_lines
+    (
+        const std::vector < std::vector < double > > & T,
+        std::vector < std::vector < plot::point < double > > > & out,
+        size_t n, size_t m,
+        const parameters & p,
+        stencil_fn stencil,
+        std::vector < plot::point < size_t > > hint
+    );
+
     inline static plot::painter_t make_system_painter(const parameters & params,
                                                       const chasing_data & d,
                                                       const std::vector < std::vector < double > > & T)
