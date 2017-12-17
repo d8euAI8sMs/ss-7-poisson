@@ -1,6 +1,7 @@
 #pragma once
 
 #include <array>
+#include <map>
 
 #include <util/common/plot/plot.h>
 
@@ -134,15 +135,28 @@ namespace model
         const material_t dielectr = 0x1 << 6;
         const material_t cap1     = 0x1 << 7;
         const material_t cap2     = 0x1 << 8;
+        const material_t faraday_re = 0x1 << 9;
+        const material_t faraday_im = 0x1 << 10;
 
         const material_t border   = border_i | border_j;
         const material_t flags    = border;
         const material_t no_flags = ~flags;
     };
 
+    struct is_less_than
+    {
+        bool operator() (const plot::point < size_t > & p1, const plot::point < size_t > & p2)
+        {
+            if (p1.x > p2.x) return false;
+            if (p1.y >= p2.y) return false;
+            return true;
+        }
+    };
+
     struct relax_data
     {
         std::vector < std::vector < material_t > > area_map;
+        std::map < plot::point < size_t >, plot::point < size_t >, is_less_than > re_im_mapping;
         std::vector < std::vector < double > > fn;
         size_t n, m;
     };
@@ -162,6 +176,16 @@ namespace model
     {
         return (r.xmin <= p.x) && (p.x <= r.xmax)
             && (r.ymin <= p.y) && (p.y <= r.ymax);
+    }
+
+    inline void add_faraday_re_im(relax_data & d,
+                                  const plot::point < size_t > & re,
+                                  const plot::point < size_t > & im)
+    {
+        d.area_map[re.x][re.y] = material::metal | material::border | material::faraday_re;
+        d.area_map[im.x][im.y] = material::dielectr | material::faraday_im;
+        d.re_im_mapping[re] = im;
+        d.re_im_mapping[im] = re;
     }
 
     inline void make_relax_data(relax_data & d, const parameters & p)
@@ -201,14 +225,10 @@ namespace model
                                                 !is_in_rect({ i, j }, { Y_n - b_n + 1, Y_n + b_n - 1, X_m - a_m + 1, X_m - a_m + d_m - 1 })
                                              && !is_in_rect({ i, j }, { Y_n - b_n + 1, Y_n + b_n - 1, X_m + a_m - d_m + 1, X_m + a_m - 1 })
                                          );
-                bool is_cage_inner       = is_in_rect({ i, j }, { Y_n - yc_n - bc_n + dc_n, Y_n - yc_n + bc_n - dc_n, X_m + xc_m - ac_m + dc_m, X_m + xc_m + ac_m - dc_m });
-                bool is_cage             = !is_cage_inner && is_in_rect({ i, j }, { Y_n - yc_n - bc_n, Y_n - yc_n + bc_n, X_m + xc_m - ac_m, X_m + xc_m + ac_m });
-                bool is_cage_border      = is_cage && !is_in_rect({ i, j }, { Y_n - yc_n - bc_n + 1, Y_n - yc_n + bc_n - 1, X_m + xc_m - ac_m + 1, X_m + xc_m + ac_m - 1 })
-                                        || !is_cage_inner && is_in_rect({ i, j }, { Y_n - yc_n - bc_n + dc_n - 1, Y_n - yc_n + bc_n - dc_n + 1, X_m + xc_m - ac_m + dc_m - 1, X_m + xc_m + ac_m - dc_m + 1 });
 
-                if (is_border || is_capacitor_border || is_cage_border)
+                if (is_border || is_capacitor_border)
                     d.area_map[i][j]  = material::border;
-                if (is_capacitor || is_cage || is_border)
+                if (is_capacitor || is_border)
                     d.area_map[i][j] |= material::metal;
                 else
                     d.area_map[i][j]  = material::dielectr;
@@ -248,6 +268,38 @@ namespace model
                 }
             }
         }
+
+        for (size_t i = 0; i < bc_n; i += 2)
+        {
+            add_faraday_re_im(d,
+                { Y_n + i, X_m - ac_m },
+                { Y_n + i, X_m + ac_m });
+            add_faraday_re_im(d,
+                { Y_n + i + 1, X_m + ac_m },
+                { Y_n + i + 1, X_m - ac_m });
+            add_faraday_re_im(d,
+                { Y_n - i, X_m - ac_m },
+                { Y_n - i, X_m + ac_m });
+            add_faraday_re_im(d,
+                { Y_n - i - 1, X_m + ac_m },
+                { Y_n - i - 1, X_m - ac_m });
+        }
+
+        for (size_t j = 0; j < ac_m; j += 2)
+        {
+            add_faraday_re_im(d,
+                { Y_n - bc_n, X_m + j },
+                { Y_n + bc_n, X_m + j });
+            add_faraday_re_im(d,
+                { Y_n + bc_n, X_m + j + 1 },
+                { Y_n - bc_n, X_m + j + 1 });
+            add_faraday_re_im(d,
+                { Y_n - bc_n, X_m - j },
+                { Y_n + bc_n, X_m - j });
+            add_faraday_re_im(d,
+                { Y_n + bc_n, X_m - j - 1 },
+                { Y_n - bc_n, X_m - j - 1 });
+        }
     }
 
     inline void relax_solve
@@ -257,17 +309,23 @@ namespace model
         std::vector < std::vector < double > > & T
     )
     {
+        plot::point < size_t > m;
         for (size_t l = 0; l < 100; ++l)
         {
             for (size_t i = 0; i < d.n; ++i)
             {
                 for (size_t j = 0; j < d.m; ++j)
                 {
+                    m = { i, j };
+                    if (d.area_map[i][j] & (material::faraday_re | material::faraday_im))
+                    {
+                        m = d.re_im_mapping.at(m);
+                    }
                     if (d.area_map[i][j] & material::border)
                     {
-                             if (d.area_map[i][j] & material::cap1) T[i][j] = p.q1;
-                        else if (d.area_map[i][j] & material::cap2) T[i][j] = p.q2;
-                        else T[i][j] = 0;
+                             if (d.area_map[i][j] & material::cap1) T[m.x][m.y] = p.q1;
+                        else if (d.area_map[i][j] & material::cap2) T[m.x][m.y] = p.q2;
+                        else T[m.x][m.y] = 0;
                     }
                     else if (d.area_map[i][j] & material::metal) continue;
                     else
@@ -283,7 +341,7 @@ namespace model
                             Tij += T[i][j + 1] / p.dx / p.dx;
                         Tij -= d.fn[i][j] / p.eps;
                         Tij /= 2 * (1. / p.dx / p.dx + 1. / p.dy / p.dy);
-                        T[i][j] = Tij;
+                        T[m.x][m.y] = Tij;
                     }
                 }
             }
