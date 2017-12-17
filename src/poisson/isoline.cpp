@@ -482,7 +482,7 @@ void model::find_field_lines
     size_t n, size_t m,
     const parameters & p,
     stencil_fn stencil,
-    std::vector < plot::point < size_t > > hint
+    std::vector < plot::point < double > > hint
 )
 {
     std::vector < std::vector < std::array < owning_type, 2 > > > visited(
@@ -491,8 +491,10 @@ void model::find_field_lines
     std::vector < triangle > path;
     std::vector < plot::point < double > > isoline;
 
-    for each (auto p0 in hint)
+    for each (auto ph in hint)
     {
+        plot::point < size_t > p0 = { (size_t) std::trunc(ph.y), (size_t) std::trunc(ph.x) };
+
         if
         (
             (p0.x <= 0)
@@ -508,8 +510,6 @@ void model::find_field_lines
 
         bool success;
 
-        visited[p0.x][p0.y][0] = owning_type::our;
-
         bool inv = true;
 
         // two iterations (in forward and backward direction)
@@ -520,9 +520,11 @@ void model::find_field_lines
 
             cur =
             {
-                { p0.x, p0.y, 0 },
-                { (double) p0.y, (double) p0.x }
+                get_containing_triangle(ph),
+                ph
             };
+
+            visited[t.i][t.j][t.o] = owning_type::our;
 
             path.push_back(std::get<0>(cur));
             isoline.emplace_back(

@@ -379,7 +379,7 @@ namespace model
         size_t n, size_t m,
         const parameters & p,
         stencil_fn stencil,
-        std::vector < plot::point < size_t > > hint
+        std::vector < plot::point < double > > hint
     );
 
     inline static plot::painter_t make_system_painter(const parameters & params,
