@@ -58,7 +58,7 @@ namespace model
         plot::world_mapper_t world_mapper;
     };
 
-    inline static plot_data make_plot_data()
+    inline static plot_data make_plot_data(COLORREF color = 0xffffff)
     {
         plot_data pd;
         pd.data = util::create < std::vector < points_t > > ();
@@ -66,7 +66,7 @@ namespace model
         (
             plot::make_data_source(pd.data),
             nullptr, // no point painter
-            plot::palette::pen(0xffffff, 2)
+            plot::palette::pen(color, 2)
         );
         pd.world = plot::world_t::create();
         pd.world_mapper = plot::make_world_mapper(pd.world);
