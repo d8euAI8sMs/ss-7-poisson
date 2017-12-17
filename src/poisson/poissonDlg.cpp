@@ -164,29 +164,77 @@ void CPoissonDlg::OnSimulation()
     P.clear();
     P.resize(d.n, std::vector < double > (d.m));
 
-    std::vector < plot::point < size_t > > hint;
+    std::vector < plot::point < double > > hint;
+
+    // detect field line starting points
+
+    material_t m;
+    bool border = false;
+    std::vector < plot::point < size_t > > path_a, path_b;
 
     for (size_t i = 0; i < d.n; ++i)
     {
         for (size_t j = 0; j < d.m; ++j)
         {
-            if ((d.area_map[i][j] & material::border)
-                && (d.area_map[i][j] & material::metal))
+            m = d.area_map[i][j];
+            if (!border && !path_a.empty())
             {
-                if ((d.area_map[i][j] & material::border_i)
-                    && (d.area_map[i][j] & (material::cap1 | material::cap2 | material::faraday_re | material::faraday_im)))
+                auto ps_a = path_a.front(), pe_a = path_a.back();
+                auto ps_b = path_b.front(), pe_b = path_b.back();
+                for (size_t l = 0; l < nE; ++l)
                 {
-                    hint.emplace_back(i + 1, j);
-                    hint.emplace_back(i - 1, j);
+                    hint.push_back({ ps_a.y + ((double) pe_a.y - ps_a.y) / nE * l, (double) pe_a.x });
+                    hint.push_back({ ps_b.y + ((double) pe_b.y - ps_b.y) / nE * l, (double) pe_b.x });
                 }
-                else if ((d.area_map[i][j] & (material::cap1 | material::cap2 | material::faraday_re | material::faraday_im)))
-                {
-                    hint.emplace_back(i, j + 1);
-                    hint.emplace_back(i, j - 1);
-                }
+                path_a.clear();
+                path_b.clear();
+            }
+            if ((m & material::border_i) && (m & (material::cap1 | material::cap2)))
+            {
+                path_a.emplace_back(i + 1, j);
+                path_b.emplace_back(i - 1, j);
+                border = true;
+            }
+            else
+            {
+                border = false;
             }
         }
     }
+
+    border = false;
+
+    for (size_t j = 0; j < d.m; ++j)
+    {
+        for (size_t i = 0; i < d.n; ++i)
+        {
+            m = d.area_map[i][j];
+            if (!border && !path_a.empty())
+            {
+                auto ps_a = path_a.front(), pe_a = path_a.back();
+                auto ps_b = path_b.front(), pe_b = path_b.back();
+                for (size_t l = 0; l < nE; ++l)
+                {
+                    hint.push_back({ (double) pe_a.y, ps_a.x + ((double) pe_a.x - ps_a.x) / nE * l });
+                    hint.push_back({ (double) pe_b.y, ps_b.x + ((double) pe_b.x - ps_b.x) / nE * l });
+                }
+                path_a.clear();
+                path_b.clear();
+            }
+            if ((m & material::border_j) && (m & (material::cap1 | material::cap2)))
+            {
+                path_a.emplace_back(i, j + 1);
+                path_b.emplace_back(i, j - 1);
+                border = true;
+            }
+            else
+            {
+                border = false;
+            }
+        }
+    }
+
+    // perform modeling
 
     while (m_bWorking)
     {
