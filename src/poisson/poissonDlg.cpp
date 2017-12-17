@@ -29,7 +29,7 @@ CPoissonDlg::CPoissonDlg(CWnd* pParent /*=NULL*/)
     , E_bool(true)
     , p(make_default_parameters())
     , plt(make_plot_data())
-    , plt2(make_plot_data(RGB(155, 155, 155)))
+    , plt2(make_plot_data())
 {
 	m_hIcon = AfxGetApp()->LoadIcon(IDR_MAINFRAME);
 }
