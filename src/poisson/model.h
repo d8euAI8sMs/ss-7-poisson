@@ -390,8 +390,8 @@ namespace model
         {
             if (d.area_map.empty()) return;
 
-            auto metal_brush  = plot::palette::brush(RGB(100, 100, 100));
-            auto border_brush = plot::palette::brush(RGB( 50,  50,  50));
+            auto metal_brush  = plot::palette::brush(RGB(200,   0,   0));
+            auto border_brush = plot::palette::brush(RGB(255, 255,   0));
 
             RECT r;
 
