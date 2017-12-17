@@ -21,7 +21,7 @@ namespace model
         double d;
 
         // Faraday cage params
-        double d_c, x_c, y_c, a_c, b_c;
+        double d_c, x_c, y_c, a_c, b_c, g_c;
 
         // other params
         double dt, dy, dx;
@@ -41,7 +41,7 @@ namespace model
             5,
 
             // Faraday cage params
-            5, 0, 0, 20, 20,
+            5, 0, 0, 20, 20, 2,
 
             // other params
             0.3, 1, 1,
@@ -269,7 +269,7 @@ namespace model
             }
         }
 
-        for (size_t i = 0; i < bc_n; i += 2)
+        for (size_t i = 0; i < bc_n; i += p.g_c)
         {
             add_faraday_re_im(d,
                 { Y_n + i, X_m - ac_m },
@@ -285,7 +285,7 @@ namespace model
                 { Y_n - i - 1, X_m - ac_m });
         }
 
-        for (size_t j = 0; j < ac_m; j += 2)
+        for (size_t j = 0; j < ac_m; j += p.g_c)
         {
             add_faraday_re_im(d,
                 { Y_n - bc_n, X_m + j },
