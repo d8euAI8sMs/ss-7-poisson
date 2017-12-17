@@ -272,33 +272,33 @@ namespace model
         for (size_t i = 0; i < bc_n; i += p.g_c)
         {
             add_faraday_re_im(d,
-                { Y_n + i, X_m - ac_m },
-                { Y_n + i, X_m + ac_m });
+                { Y_n + i - yc_n, X_m - ac_m + xc_m },
+                { Y_n + i - yc_n, X_m + ac_m + xc_m });
             add_faraday_re_im(d,
-                { Y_n + i + 1, X_m + ac_m },
-                { Y_n + i + 1, X_m - ac_m });
+                { Y_n + i - 1 - yc_n, X_m + ac_m + xc_m },
+                { Y_n + i - 1 - yc_n, X_m - ac_m + xc_m });
             add_faraday_re_im(d,
-                { Y_n - i, X_m - ac_m },
-                { Y_n - i, X_m + ac_m });
+                { Y_n - i - yc_n, X_m - ac_m + xc_m },
+                { Y_n - i - yc_n, X_m + ac_m + xc_m });
             add_faraday_re_im(d,
-                { Y_n - i - 1, X_m + ac_m },
-                { Y_n - i - 1, X_m - ac_m });
+                { Y_n - i - 1 - yc_n, X_m + ac_m + xc_m },
+                { Y_n - i - 1 - yc_n, X_m - ac_m + xc_m });
         }
 
         for (size_t j = 0; j < ac_m; j += p.g_c)
         {
             add_faraday_re_im(d,
-                { Y_n - bc_n, X_m + j },
-                { Y_n + bc_n, X_m + j });
+                { Y_n - bc_n - yc_n, X_m + j + xc_m },
+                { Y_n + bc_n - yc_n, X_m + j + xc_m });
             add_faraday_re_im(d,
-                { Y_n + bc_n, X_m + j + 1 },
-                { Y_n - bc_n, X_m + j + 1 });
+                { Y_n + bc_n - yc_n, X_m + j + 1 + xc_m },
+                { Y_n - bc_n - yc_n, X_m + j + 1 + xc_m });
             add_faraday_re_im(d,
-                { Y_n - bc_n, X_m - j },
-                { Y_n + bc_n, X_m - j });
+                { Y_n - bc_n - yc_n, X_m - j + xc_m },
+                { Y_n + bc_n - yc_n, X_m - j + xc_m });
             add_faraday_re_im(d,
-                { Y_n + bc_n, X_m - j - 1 },
-                { Y_n - bc_n, X_m - j - 1 });
+                { Y_n + bc_n - yc_n, X_m - j - 1 + xc_m },
+                { Y_n - bc_n - yc_n, X_m - j - 1 + xc_m });
         }
     }
 
