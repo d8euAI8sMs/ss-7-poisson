@@ -121,22 +121,7 @@ namespace model
         };
     }
 
-    struct chasing_data;
-
-    enum class chasing_dir
-    {
-        i, j
-    };
-
-    struct chasing_coefs
-    {
-        double A, B, C, D;
-    };
-
-    using chasing_fn = std::function < chasing_coefs (size_t i, size_t j, chasing_dir dir,
-                                                      const chasing_data & d,
-                                                      const parameters & p,
-                                                      std::vector < std::vector < double > > & T) > ;
+    struct relax_data;
 
     using material_t = size_t;
 
@@ -155,15 +140,14 @@ namespace model
         const material_t no_flags = ~flags;
     };
 
-    struct chasing_data
+    struct relax_data
     {
         std::vector < std::vector < material_t > > area_map;
         std::vector < std::vector < double > > fn;
-        chasing_fn coefs;
         size_t n, m;
     };
 
-    inline material_t get_material_at(const chasing_data & d,
+    inline material_t get_material_at(const relax_data & d,
                                       const plot::point < int > & p,
                                       bool preserve_flags = true)
     {
@@ -173,22 +157,6 @@ namespace model
                               : (d.area_map[p.x][p.y] & material::no_flags));
     }
 
-    inline std::array < material_t, 2 > get_nearest_materials(const chasing_data & d,
-                                                              const plot::point < int > & p,
-                                                              chasing_dir dir)
-    {
-        material_t m1, m2;
-
-        if (dir == chasing_dir::i)
-        {
-            return {{ get_material_at(d, { p.x - 1, p.y }), get_material_at(d, { p.x + 1, p.y }) }};
-        }
-        else
-        {
-            return {{ get_material_at(d, { p.x, p.y - 1 }), get_material_at(d, { p.x, p.y + 1 }) }};
-        }
-    }
-
     inline bool is_in_rect(const plot::point < size_t > & p,
                            const plot::rect < size_t > & r)
     {
@@ -196,7 +164,7 @@ namespace model
             && (r.ymin <= p.y) && (p.y <= r.ymax);
     }
 
-    inline void make_chasing_data(chasing_data & d, const parameters & p)
+    inline void make_relax_data(relax_data & d, const parameters & p)
     {
         d.n = (size_t) std::ceil((p.b * p.k) / p.dy) * 2;
         d.m = (size_t) std::ceil((p.a * p.k) / p.dx) * 2;
@@ -280,204 +248,46 @@ namespace model
                 }
             }
         }
+    }
 
-        d.coefs = [&] (size_t i, size_t j, chasing_dir dir,
-                       const chasing_data & d,
-                       const parameters & p,
-                       std::vector < std::vector < double > > & T) -> chasing_coefs
+    inline void relax_solve
+    (
+        const relax_data & d,
+        const parameters & p,
+        std::vector < std::vector < double > > & T
+    )
+    {
+        for (size_t l = 0; l < 100; ++l)
         {
-            // make ordinary A B C D coefficients
-            auto make_normal_coefs = [&] (
-                size_t i, size_t j, chasing_dir s,
-                double eps) -> chasing_coefs
+            for (size_t i = 0; i < d.n; ++i)
             {
-                bool is_ext_i = (get_material_at(d, { (int) i - 1, ( int) j })
-                                 | get_material_at(d, { (int) i + 1, ( int) j })) & material::ext;
-                bool is_ext_j = (get_material_at(d, { (int) i, ( int) j - 1 })
-                                 | get_material_at(d, { (int) i, ( int) j + 1 })) & material::ext;
-
-                if (s == chasing_dir::i)
+                for (size_t j = 0; j < d.m; ++j)
                 {
-                    return
+                    if (d.area_map[i][j] & material::border)
                     {
-                        - p.dt / 2. / p.dy / p.dy,
-                        - p.dt / 2. / p.dy / p.dy,
-                        1 + p.dt / 1. / p.dy / p.dy,
-                        T[i][j] + p.dt / 2. *
-                        (
-                            (is_ext_j ? 0 : ((T[i][j + 1] + T[i][j - 1] - 2 * T[i][j]) / p.dx / p.dx))
-                        ) + p.dt / 2. * d.fn[i][j] / eps
-                    };
-                }
-                return
-                {
-                    - p.dt / 2. / p.dx / p.dx,
-                    - p.dt / 2. / p.dx / p.dx,
-                    1 + p.dt / 1. / p.dx / p.dx,
-                    T[i][j] + p.dt / 2. *
-                    (
-                        (is_ext_i ? 0 : ((T[i + 1][j] + T[i - 1][j] - 2 * T[i][j]) / p.dy / p.dy))
-                    ) + p.dt / 2. * d.fn[i][j] / eps
-                };
-            };
-
-            material_t m = d.area_map[i][j];
-
-            // deal with boundary conditions
-            if (m & material::border)
-            {
-                if (m & material::metal)
-                {
-                    if (m & material::cap1)
-                    {
-                        return { 0, 0, 1, p.q1 };
+                             if (d.area_map[i][j] & material::cap1) T[i][j] = p.q1;
+                        else if (d.area_map[i][j] & material::cap2) T[i][j] = p.q2;
+                        else T[i][j] = 0;
                     }
-                    else if (m & material::cap2)
-                    {
-                        return { 0, 0, 1, p.q2 };
-                    }
+                    else if (d.area_map[i][j] & material::metal) continue;
                     else
                     {
-                        return { 0, 0, 1, 0 };
-                    }
-                }
-            }
-            // deal with ordinary space
-            else if (!(m & material::metal))
-            {
-                return make_normal_coefs(i, j, dir, p.eps);
-            }
-
-            return { 0, 0, 1, 0 };
-        };
-    }
-
-    // post-apply boundary conditions again
-    inline void chasing_bc
-    (
-        const chasing_data & d,
-        const parameters & p,
-        std::vector < std::vector < double > > & T
-    )
-    {
-        chasing_coefs c;
-
-        for (size_t i = 0; i < d.n; ++i)
-        {
-            for (size_t j = 0; j < d.m; ++j)
-            {
-                if (d.area_map[i][j] & material::border_i)
-                {
-                    if ((get_material_at(d, { (int) i - 1, (int) j })
-                        | get_material_at(d, { (int) i + 1, (int) j })) & material::ext)
-                    {
-                        c = d.coefs(i, j, chasing_dir::i, d, p, T);
-                        T[i][j] = c.D;
+                        double Tij = 0;
                         if (!(get_material_at(d, { (int) i - 1, (int) j }) & material::ext))
-                            T[i][j] -= c.A * T[i - 1][j];
+                            Tij += T[i - 1][j] / p.dy / p.dy;
                         if (!(get_material_at(d, { (int) i + 1, (int) j }) & material::ext))
-                            T[i][j] -= c.B * T[i + 1][j];
-                        T[i][j] /= c.C;
-                    }
-                    else if ((get_material_at(d, { (int) i, (int) j - 1 })
-                        | get_material_at(d, { (int) i, (int) j + 1 })) & material::ext)
-                    {
-                        c = d.coefs(i, j, chasing_dir::j, d, p, T);
-                        T[i][j] = c.D;
+                            Tij += T[i + 1][j] / p.dy / p.dy;
                         if (!(get_material_at(d, { (int) i, (int) j - 1 }) & material::ext))
-                            T[i][j] -= c.A * T[i][j - 1];
+                            Tij += T[i][j - 1] / p.dx / p.dx;
                         if (!(get_material_at(d, { (int) i, (int) j + 1 }) & material::ext))
-                            T[i][j] -= c.B * T[i][j + 1];
-                        T[i][j] /= c.C;
+                            Tij += T[i][j + 1] / p.dx / p.dx;
+                        Tij -= d.fn[i][j] / p.eps;
+                        Tij /= 2 * (1. / p.dx / p.dx + 1. / p.dy / p.dy);
+                        T[i][j] = Tij;
                     }
                 }
             }
         }
-    }
-
-    inline void chasing_solve
-    (
-        const chasing_data & d,
-        const parameters & p,
-        std::vector < std::vector < double > > & T
-    )
-    {
-        std::vector < std::vector < double > > a(d.n + 1), b(d.n + 1);
-
-        for (size_t i = 0; i < d.n + 1; ++i)
-        {
-            a[i].resize(d.m + 1); b[i].resize(d.m + 1);
-        }
-
-        chasing_coefs c;
-
-        // i-chasing
-
-        for (size_t i = 0; i < d.n; ++i)
-        {
-            for (size_t j = 0; j < d.m; ++j)
-            {
-                c = d.coefs(i, j, chasing_dir::i, d, p, T);
-                a[i + 1][j] = - c.B / (c.C + c.A * a[i][j]);
-                b[i + 1][j] = (c.D - c.A * b[i][j]) / (c.C + c.A * a[i][j]);
-            }
-        }
-
-        for (size_t j = 0; j < d.m; ++j)
-        {
-            size_t s = d.n - 1, e = 0;
-            while (get_material_at(d, { (int) s, (int) j }) & material::ext) --s;
-            while (get_material_at(d, { (int) e, (int) j }) & material::ext) ++e;
-            for (size_t i = s + 2; i-- > e + 1;)
-            {
-                if (get_material_at(d, { (int) i, (int) j }) & material::ext)
-                {
-                    T[i - 1][j] = b[i][j];
-                }
-                else
-                {
-                    T[i - 1][j] = a[i][j] * T[i][j] + b[i][j];
-                }
-            }
-        }
-
-        // boundary condition chasing
-
-        chasing_bc(d, p, T);
-
-        // j-chasing
-
-        for (size_t i = 0; i < d.n; ++i)
-        {
-            for (size_t j = 0; j < d.m; ++j)
-            {
-                c = d.coefs(i, j, chasing_dir::j, d, p, T);
-                a[i][j + 1] = - c.B / (c.C + c.A * a[i][j]);
-                b[i][j + 1] = (c.D - c.A * b[i][j]) / (c.C + c.A * a[i][j]);
-            }
-        }
-
-        for (size_t i = 0; i < d.n; ++i)
-        {
-            size_t s = d.m - 1, e = 0;
-            while (get_material_at(d, { (int) i, (int) s }) & material::ext) --s;
-            while (get_material_at(d, { (int) i, (int) e }) & material::ext) ++e;
-            for (size_t j = s + 2; j-- > e + 1;)
-            {
-                if (get_material_at(d, { (int) i, (int) j }) & material::ext)
-                {
-                    T[i][j - 1] = b[i][j];
-                }
-                else
-                {
-                    T[i][j - 1] = a[i][j] * T[i][j] + b[i][j];
-                }
-            }
-        }
-
-        // boundary condition chasing
-
-        chasing_bc(d, p, T);
     }
 
     using stencil_fn = std::function < bool (int i, int j) > ;
@@ -487,7 +297,7 @@ namespace model
         return [=] (int i, int j) { return (i >= 0) && (j >= 0) && (i < n) && (j < m); };
     }
 
-    inline static stencil_fn make_material_based_stencil(const chasing_data & d)
+    inline static stencil_fn make_material_based_stencil(const relax_data & d)
     {
         return [&] (int i, int j) { return !(get_material_at(d, { i, j }) & (material::ext | material::metal)); };
     }
@@ -515,7 +325,7 @@ namespace model
     );
 
     inline static plot::painter_t make_system_painter(const parameters & params,
-                                                      const chasing_data & d,
+                                                      const relax_data & d,
                                                       const std::vector < std::vector < double > > & T)
     {
         return [&] (CDC & dc, const plot::viewport & vp)

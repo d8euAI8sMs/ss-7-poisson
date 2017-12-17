@@ -85,7 +85,7 @@ BOOL CPoissonDlg::OnInitDialog()
 	// TODO: Add extra initialization here
 
     adjust(p, plt);
-    make_chasing_data(d, p);
+    make_relax_data(d, p);
     P.clear();
     P.resize(d.n, std::vector < double > (d.m));
 
@@ -158,7 +158,7 @@ void CPoissonDlg::OnSimulation()
 {
     adjust(p, plt);
 
-    make_chasing_data(d, p);
+    make_relax_data(d, p);
 
     P.clear();
     P.resize(d.n, std::vector < double > (d.m));
@@ -192,7 +192,7 @@ void CPoissonDlg::OnSimulation()
 
     while (m_bWorking)
     {
-        chasing_solve(d, p, P);
+        relax_solve(d, p, P);
         plt.data->clear();
         plt2.data->clear();
         if (A_bool)
