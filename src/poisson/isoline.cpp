@@ -213,6 +213,8 @@ void model::find_isolines
 
     /* Search for triangles intersected by isolines */
 
+    bool symmetric = false;
+
     double global_max_T = (std::numeric_limits < double > :: lowest)();
     double global_min_T = (std::numeric_limits < double > :: max)();
 
@@ -226,7 +228,16 @@ void model::find_isolines
         }
     }
 
-    global_max_T = min(global_max_T, global_min_T + dT * max_isolines);
+    double range_of_T;
+
+    if ((global_max_T > 0) && (global_min_T < 0)
+        && (std::abs(global_max_T + global_min_T) / global_max_T) < 0.1)
+    {
+        symmetric = true;
+        global_min_T = 0;
+    }
+
+    range_of_T = min(global_max_T - global_min_T, + dT * max_isolines);
 
     for (size_t i = 0; i < n - 1; ++i)
     {
@@ -235,8 +246,14 @@ void model::find_isolines
         {
             if (!stencil(i, j)) continue;
 
-            double max_T = min(global_max_T, max(max(T[i][j], T[i][j + 1]), max(T[i + 1][j], T[i + 1][j + 1])));
+            double max_T = max(max(T[i][j], T[i][j + 1]), max(T[i + 1][j], T[i + 1][j + 1]));
             double min_T = min(min(T[i][j], T[i][j + 1]), min(T[i + 1][j], T[i + 1][j + 1]));
+
+            if (!symmetric) max_T = min(global_min_T + range_of_T, max_T);
+            else {
+                max_T = min(range_of_T, max_T);
+                min_T = max(-range_of_T, min_T);
+            }
             if (min_T < max_T)
             {
                 int a = std::ceil(max_T / dT);
