@@ -195,8 +195,16 @@ void CPoissonDlg::OnSimulation()
         chasing_solve(d, p, P);
         plt.data->clear();
         plt2.data->clear();
-        find_isolines(P, dA, *plt.data, d.n, d.m, p, make_material_based_stencil(d), nA);
-        find_field_lines(P, *plt2.data, d.n, d.m, p, make_material_based_stencil(d), hint);
+        if (A_bool)
+        {
+            find_isolines(P, dA, *plt.data, d.n, d.m, p, make_material_based_stencil(d), nA);
+        }
+        if (E_bool)
+        {
+            find_field_lines(P, *plt2.data, d.n, d.m, p, make_material_based_stencil(d), hint);
+        }
+        plt.plot->visible = A_bool;
+        plt2.plot->visible = E_bool;
         plot.RedrawBuffer();
         plot.SwapBuffers();
         Invoke([&] () { plot.RedrawWindow(); });
