@@ -47,7 +47,7 @@ namespace model
             0.3, 1, 1,
 
             // material params
-            1, 1, 1
+            1, 10, -10
         };
     }
 
