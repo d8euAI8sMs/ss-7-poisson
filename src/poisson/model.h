@@ -20,9 +20,6 @@ namespace model
         // capacitor params
         double d;
 
-        // Faraday cage params
-        double d_c, x_c, y_c, a_c, b_c, g_c;
-
         // other params
         double dt, dy, dx;
 
@@ -39,9 +36,6 @@ namespace model
 
             // capacitor params
             5,
-
-            // Faraday cage params
-            5, 0, 0, 20, 20, 2,
 
             // other params
             0.3, 1, 1,
@@ -135,28 +129,15 @@ namespace model
         const material_t dielectr = 0x1 << 6;
         const material_t cap1     = 0x1 << 7;
         const material_t cap2     = 0x1 << 8;
-        const material_t faraday_re = 0x1 << 9;
-        const material_t faraday_im = 0x1 << 10;
 
         const material_t border   = border_i | border_j;
         const material_t flags    = border;
         const material_t no_flags = ~flags;
     };
 
-    struct is_less_than
-    {
-        bool operator() (const plot::point < size_t > & p1, const plot::point < size_t > & p2)
-        {
-            if (p1.x > p2.x) return false;
-            if (p1.y >= p2.y) return false;
-            return true;
-        }
-    };
-
     struct relax_data
     {
         std::vector < std::vector < material_t > > area_map;
-        std::map < plot::point < size_t >, plot::point < size_t >, is_less_than > re_im_mapping;
         std::vector < std::vector < double > > fn;
         size_t n, m;
     };
@@ -178,16 +159,6 @@ namespace model
             && (r.ymin <= p.y) && (p.y <= r.ymax);
     }
 
-    inline void add_faraday_re_im(relax_data & d,
-                                  const plot::point < size_t > & re,
-                                  const plot::point < size_t > & im)
-    {
-        d.area_map[re.x][re.y] = material::metal | material::border | material::faraday_re;
-        d.area_map[im.x][im.y] = material::dielectr | material::faraday_im;
-        d.re_im_mapping[re] = im;
-        d.re_im_mapping[im] = re;
-    }
-
     inline void make_relax_data(relax_data & d, const parameters & p)
     {
         d.n = (size_t) std::ceil((p.b * p.k) / p.dy) * 2;
@@ -201,16 +172,10 @@ namespace model
 
         size_t Y_n  = (size_t) std::ceil((p.b * p.k) / p.dy);
         size_t X_m  = (size_t) std::ceil((p.a * p.k) / p.dx);
-        size_t yc_n = (size_t) std::ceil(p.y_c / p.dy);
-        size_t xc_m = (size_t) std::ceil(p.x_c / p.dx);
         size_t b_n  = (size_t) std::ceil(p.b / p.dy);
         size_t a_m  = (size_t) std::ceil(p.a / p.dx);
-        size_t bc_n  = (size_t) std::ceil(p.b_c / p.dy);
-        size_t ac_m  = (size_t) std::ceil(p.a_c / p.dx);
         size_t d_n  = (size_t) std::ceil(p.d / p.dy);
         size_t d_m  = (size_t) std::ceil(p.d / p.dx);
-        size_t dc_n = (size_t) std::ceil(p.d_c / p.dy);
-        size_t dc_m = (size_t) std::ceil(p.d_c / p.dx);
 
         // set up materials and sketch out borders
 
@@ -268,38 +233,6 @@ namespace model
                 }
             }
         }
-
-        for (size_t i = 0; i < bc_n; i += p.g_c)
-        {
-            add_faraday_re_im(d,
-                { Y_n + i - yc_n, X_m - ac_m + xc_m },
-                { Y_n + i - yc_n, X_m + ac_m + xc_m });
-            add_faraday_re_im(d,
-                { Y_n + i - 1 - yc_n, X_m + ac_m + xc_m },
-                { Y_n + i - 1 - yc_n, X_m - ac_m + xc_m });
-            add_faraday_re_im(d,
-                { Y_n - i - yc_n, X_m - ac_m + xc_m },
-                { Y_n - i - yc_n, X_m + ac_m + xc_m });
-            add_faraday_re_im(d,
-                { Y_n - i - 1 - yc_n, X_m + ac_m + xc_m },
-                { Y_n - i - 1 - yc_n, X_m - ac_m + xc_m });
-        }
-
-        for (size_t j = 0; j < ac_m; j += p.g_c)
-        {
-            add_faraday_re_im(d,
-                { Y_n - bc_n - yc_n, X_m + j + xc_m },
-                { Y_n + bc_n - yc_n, X_m + j + xc_m });
-            add_faraday_re_im(d,
-                { Y_n + bc_n - yc_n, X_m + j + 1 + xc_m },
-                { Y_n - bc_n - yc_n, X_m + j + 1 + xc_m });
-            add_faraday_re_im(d,
-                { Y_n - bc_n - yc_n, X_m - j + xc_m },
-                { Y_n + bc_n - yc_n, X_m - j + xc_m });
-            add_faraday_re_im(d,
-                { Y_n + bc_n - yc_n, X_m - j - 1 + xc_m },
-                { Y_n - bc_n - yc_n, X_m - j - 1 + xc_m });
-        }
     }
 
     inline void relax_solve
@@ -309,23 +242,17 @@ namespace model
         std::vector < std::vector < double > > & T
     )
     {
-        plot::point < size_t > m;
         for (size_t l = 0; l < 100; ++l)
         {
             for (size_t i = 0; i < d.n; ++i)
             {
                 for (size_t j = 0; j < d.m; ++j)
                 {
-                    m = { i, j };
-                    if (d.area_map[i][j] & (material::faraday_re | material::faraday_im))
-                    {
-                        m = d.re_im_mapping.at(m);
-                    }
                     if (d.area_map[i][j] & material::border)
                     {
-                             if (d.area_map[i][j] & material::cap1) T[m.x][m.y] = p.q1;
-                        else if (d.area_map[i][j] & material::cap2) T[m.x][m.y] = p.q2;
-                        else T[m.x][m.y] = 0;
+                             if (d.area_map[i][j] & material::cap1) T[i][j] = p.q1;
+                        else if (d.area_map[i][j] & material::cap2) T[i][j] = p.q2;
+                        else T[i][j] = 0;
                     }
                     else if (d.area_map[i][j] & material::metal) continue;
                     else
@@ -341,7 +268,7 @@ namespace model
                             Tij += T[i][j + 1] / p.dx / p.dx;
                         Tij -= d.fn[i][j] / p.eps;
                         Tij /= 2 * (1. / p.dx / p.dx + 1. / p.dy / p.dy);
-                        T[m.x][m.y] = Tij;
+                        T[i][j] = Tij;
                     }
                 }
             }

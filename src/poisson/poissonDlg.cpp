@@ -47,12 +47,6 @@ void CPoissonDlg::DoDataExchange(CDataExchange* pDX)
     DDX_Text(pDX, IDC_EDIT2, p.b);
     DDX_Text(pDX, IDC_EDIT3, p.k);
     DDX_Text(pDX, IDC_EDIT4, p.d);
-    DDX_Text(pDX, IDC_EDIT5, p.d_c);
-    DDX_Text(pDX, IDC_EDIT20, p.g_c);
-    DDX_Text(pDX, IDC_EDIT7, p.x_c);
-    DDX_Text(pDX, IDC_EDIT8, p.y_c);
-    DDX_Text(pDX, IDC_EDIT16, p.a_c);
-    DDX_Text(pDX, IDC_EDIT17, p.b_c);
     DDX_Text(pDX, IDC_EDIT9, p.dt);
     DDX_Text(pDX, IDC_EDIT10, p.dx);
     DDX_Text(pDX, IDC_EDIT11, p.dy);
