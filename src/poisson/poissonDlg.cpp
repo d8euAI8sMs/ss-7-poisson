@@ -81,7 +81,6 @@ BOOL CPoissonDlg::OnInitDialog()
 
     plot.background = palette::brush();
     plot.triple_buffered = true;
-    plot.symmetric = true;
 
     plot.RedrawBuffer();
     plot.SwapBuffers();
