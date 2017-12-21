@@ -37,22 +37,12 @@ CPoissonDlg::CPoissonDlg(CWnd* pParent /*=NULL*/)
 void CPoissonDlg::DoDataExchange(CDataExchange* pDX)
 {
     CSimulationDialog::DoDataExchange(pDX);
-    DDX_Text(pDX, IDC_EDIT12, dA);
-    DDX_Text(pDX, IDC_EDIT13, dE);
-    DDX_Text(pDX, IDC_EDIT14, nA);
-    DDX_Text(pDX, IDC_EDIT15, nE);
     DDX_Check(pDX, IDC_CHECK1, A);
     DDX_Check(pDX, IDC_CHECK2, E);
     DDX_Text(pDX, IDC_EDIT1, p.a);
     DDX_Text(pDX, IDC_EDIT2, p.b);
-    DDX_Text(pDX, IDC_EDIT3, p.k);
     DDX_Text(pDX, IDC_EDIT4, p.d);
-    DDX_Text(pDX, IDC_EDIT9, p.dt);
-    DDX_Text(pDX, IDC_EDIT10, p.dx);
-    DDX_Text(pDX, IDC_EDIT11, p.dy);
-    DDX_Text(pDX, IDC_EDIT6, p.eps);
     DDX_Text(pDX, IDC_EDIT18, p.q1);
-    DDX_Text(pDX, IDC_EDIT19, p.q2);
     DDX_Control(pDX, IDC_PLOT, plot);
 }
 
@@ -152,6 +142,8 @@ void CPoissonDlg::OnBnClickedButton2()
 void CPoissonDlg::OnSimulation()
 {
     adjust(p, plt);
+
+    p.q2 = - p.q1;
 
     make_relax_data(d, p);
 
