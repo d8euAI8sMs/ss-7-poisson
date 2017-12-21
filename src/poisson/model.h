@@ -7,6 +7,8 @@
 
 #include "plot.h"
 
+#define M_PI 3.1415926535897932384626433832795
+
 namespace model
 {
 
@@ -159,6 +161,23 @@ namespace model
             && (r.ymin <= p.y) && (p.y <= r.ymax);
     }
 
+    inline bool is_in_rect(const plot::point < size_t > & p,
+                           const plot::rect < size_t > & r,
+                           double angle)
+    {
+        plot::point < double > o =
+        {
+            (double) (r.xmin + r.xmax) / 2,
+            (double) (r.ymin + r.ymax) / 2
+        };
+        plot::point < double > p1 =
+        {
+            o.x + std::cos(angle) * ((int) p.x - o.x) - std::sin(angle) * ((int) p.y - o.y),
+            o.y + std::sin(angle) * ((int) p.x - o.x) + std::cos(angle) * ((int) p.y - o.y)
+        };
+        return is_in_rect({ (size_t) std::round(p1.x), (size_t) std::round(p1.y) }, r);
+    }
+
     inline void make_relax_data(relax_data & d, const parameters & p)
     {
         d.n = (size_t) std::ceil((p.b * p.k) / p.dy) * 2;
@@ -185,10 +204,10 @@ namespace model
             {
                 bool is_border           = (i == 0) || ((i + 1) == Y_n * 2) || (j == 0) || ((j + 1) == X_m * 2);
                 bool is_capacitor        = is_in_rect({ i, j }, { Y_n - b_n, Y_n + b_n, X_m - a_m, X_m - a_m + d_m })
-                                        || is_in_rect({ i, j }, { Y_n - b_n, Y_n + b_n, X_m + a_m - d_m, X_m + a_m });
+                                        || is_in_rect({ i, j }, { Y_n - b_n, Y_n + b_n, X_m + a_m - d_m, X_m + a_m }, p.angle / 180 * M_PI);
                 bool is_capacitor_border = is_capacitor && (
                                                 !is_in_rect({ i, j }, { Y_n - b_n + 1, Y_n + b_n - 1, X_m - a_m + 1, X_m - a_m + d_m - 1 })
-                                             && !is_in_rect({ i, j }, { Y_n - b_n + 1, Y_n + b_n - 1, X_m + a_m - d_m + 1, X_m + a_m - 1 })
+                                             && !is_in_rect({ i, j }, { Y_n - b_n + 1, Y_n + b_n - 1, X_m + a_m - d_m + 1, X_m + a_m - 1 }, p.angle / 180 * M_PI)
                                          );
 
                 if (is_border || is_capacitor_border)
@@ -198,12 +217,12 @@ namespace model
                 else
                     d.area_map[i][j]  = material::dielectr;
 
-                if (is_capacitor && (j < Y_n))
+                if (is_capacitor && (j <= (X_m - a_m + d_m)))
                 {
                     d.fn[i][j] = p.q1;
                     d.area_map[i][j] |= material::cap1;
                 }
-                if (is_capacitor && (j > Y_n))
+                if (is_capacitor && (j > (X_m - a_m + d_m)))
                 {
                     d.fn[i][j] = p.q2;
                     d.area_map[i][j] |= material::cap2;
