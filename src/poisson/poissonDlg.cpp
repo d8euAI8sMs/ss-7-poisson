@@ -53,6 +53,7 @@ void CPoissonDlg::DoDataExchange(CDataExchange* pDX)
     DDX_Text(pDX, IDC_EDIT6, p.eps);
     DDX_Text(pDX, IDC_EDIT18, p.q1);
     DDX_Text(pDX, IDC_EDIT19, p.q2);
+    DDX_Text(pDX, IDC_EDIT20, p.angle);
     DDX_Control(pDX, IDC_PLOT, plot);
 }
 
