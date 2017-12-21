@@ -32,13 +32,13 @@ namespace model
         return
         {
             // system params
-            50, 50, 2,
+            50, 50, 2.5,
 
             // capacitor params
-            5,
+            8,
 
             // other params
-            0.3, 1, 1,
+            0.3, 2, 2,
 
             // material params
             1, 10, -10
