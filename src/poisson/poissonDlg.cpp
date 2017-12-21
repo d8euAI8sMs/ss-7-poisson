@@ -184,11 +184,12 @@ void CPoissonDlg::OnSimulation()
                 path_a.clear();
                 path_b.clear();
             }
-            if ((m & material::border_i) && (m & (material::cap1 | material::cap2)))
+            if ((m & material::border_i) && (m & material::metal) && !(m & material::cap2))
             {
                 path_a.emplace_back(i + 1, j);
                 path_b.emplace_back(i - 1, j);
                 border = true;
+                if ((j + 2) == d.m) border = false;
             }
             else
             {
@@ -216,11 +217,12 @@ void CPoissonDlg::OnSimulation()
                 path_a.clear();
                 path_b.clear();
             }
-            if ((m & material::border_j) && (m & (material::cap1 | material::cap2)))
+            if ((m & material::border_j) && (m & material::metal) && !(m & material::cap2))
             {
                 path_a.emplace_back(i, j + 1);
                 path_b.emplace_back(i, j - 1);
                 border = true;
+                if ((i + 2) == d.n) border = false;
             }
             else
             {
