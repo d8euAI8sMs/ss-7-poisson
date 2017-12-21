@@ -18,7 +18,7 @@ namespace model
         double a, b, k;
 
         // capacitor params
-        double d;
+        double d, angle;
 
         // other params
         double dt, dy, dx;
@@ -35,7 +35,7 @@ namespace model
             50, 50, 2,
 
             // capacitor params
-            5,
+            5, 30,
 
             // other params
             0.3, 1, 1,
