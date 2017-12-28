@@ -28,8 +28,8 @@ CPoissonDlg::CPoissonDlg(CWnd* pParent /*=NULL*/)
     , A_bool(true)
     , E_bool(true)
     , p(make_default_parameters())
-    , plt(make_plot_data(RGB(100, 255, 100)))
-    , plt2(make_plot_data())
+    , plt(make_plot_data(RGB(50, 50, 255)))
+    , plt2(make_plot_data(RGB(255, 50, 50)))
     , S(FALSE)
 {
 	m_hIcon = AfxGetApp()->LoadIcon(IDR_MAINFRAME);
@@ -86,7 +86,7 @@ BOOL CPoissonDlg::OnInitDialog()
         plt2.plot
     }));
 
-    plot.background = palette::brush();
+    plot.background = palette::brush(RGB(255, 255, 200));
     plot.triple_buffered = true;
 
     plot.RedrawBuffer();
