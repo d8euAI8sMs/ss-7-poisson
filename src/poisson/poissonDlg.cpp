@@ -28,7 +28,7 @@ CPoissonDlg::CPoissonDlg(CWnd* pParent /*=NULL*/)
     , A_bool(true)
     , E_bool(true)
     , p(make_default_parameters())
-    , plt(make_plot_data())
+    , plt(make_plot_data(RGB(100, 255, 100)))
     , plt2(make_plot_data())
     , S(FALSE)
 {
