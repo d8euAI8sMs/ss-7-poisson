@@ -161,6 +161,56 @@ namespace model
             && (r.ymin <= p.y) && (p.y <= r.ymax);
     }
 
+    /**
+     *         w
+     *       <---->
+     *
+     *    ^  +----+
+     *    |  |   /|
+     *    |  |  / |
+     *    |  | /  |
+     *    |  |/   |
+     *  h |  +    +
+     *    |  |\   |  <- p
+     *    |  | \  |
+     *    |  |  \ |
+     *    |  |   \|
+     *    v  +----+
+     */
+
+    inline bool is_in_triangle_mirr(const plot::point < size_t > & p,
+                                    const plot::rect < size_t > & r)
+    {
+        if (!is_in_rect(p, r)) return false;
+        return (((double) p.x - (double)r.xmin - (double)r.width() / 2) <= ((double)r.width() / 2 / r.height() * ((double)p.y - (double)r.ymin))) &&
+               (((double) p.x - (double)r.xmin - (double)r.width() / 2) >= (-(double)r.width() / 2 / r.height() * ((double)p.y - (double)r.ymin)));
+    }
+
+    /**
+     *         w
+     *       <---->
+     *
+     *    ^  +----+
+     *    |  |\   |
+     *    |  | \  |
+     *    |  |  \ |
+     *    |  |   \|
+     *  h |  |    +
+     *    |  |   /|  <- p
+     *    |  |  / |
+     *    |  | /  |
+     *    |  |/   |
+     *    v  +----+
+     */
+    inline bool is_in_triangle(const plot::point < size_t > & p,
+                               const plot::rect < size_t > & r)
+    {
+        if (r.ymin > r.ymax) return is_in_triangle_mirr(p, { r.xmin, r.xmax, r.ymax, r.ymin });
+        if (!is_in_rect(p, r)) return false;
+        return (((double) p.x - (double)r.xmin - (double)r.width() / 2) <= (- (double)r.width() / 2 / r.height() * ((double)p.y - (double)r.ymin) + (double)r.width() / 2)) &&
+               (((double) p.x - (double)r.xmin) >= ((double)r.width() / 2 / r.height() * ((double)p.y - (double)r.ymin)));
+    }
+
     inline void make_relax_data(relax_data & d, const parameters & p)
     {
         d.n = (size_t) std::ceil((p.b * p.k) / p.dy) * 2;
@@ -178,6 +228,20 @@ namespace model
         size_t a_m  = (size_t) std::ceil(p.a / p.dx);
         size_t d_n  = (size_t) std::ceil(p.d / p.dy);
         size_t d_m  = (size_t) std::ceil(p.d / p.dx);
+        size_t dn1_m = (size_t) std::ceil(p.dn1 / p.dx);
+        size_t dn1_n = (size_t) std::ceil(p.b * 2 / p.n1 / p.dy);
+        size_t dn2_m = (size_t) std::ceil(p.dn2 / p.dx);
+        size_t dn2_n = (size_t) std::ceil(p.b * 2 / p.n2 / p.dy);
+
+        std::vector < plot::rect < size_t > > triangles;
+        for (size_t i = 0; i < p.n1; ++i)
+        {
+            triangles.emplace_back(Y_n + b_n - (i + 1) * dn1_n, Y_n + b_n - i * dn1_n, X_m - a_m + d_m, X_m - a_m + d_m + dn1_m);
+        }
+        for (size_t i = 0; i < p.n2; ++i)
+        {
+            triangles.emplace_back(Y_n + b_n - (i + 1) * dn2_n, Y_n + b_n - i * dn2_n, X_m + a_m - d_m, X_m + a_m - d_m - dn2_m);
+        }
 
         // set up materials and sketch out borders
 
@@ -192,6 +256,22 @@ namespace model
                                                 !is_in_rect({ i, j }, { Y_n - b_n + 1, Y_n + b_n - 1, X_m - a_m + 1, X_m - a_m + d_m - 1 })
                                              && !is_in_rect({ i, j }, { Y_n - b_n + 1, Y_n + b_n - 1, X_m + a_m - d_m + 1, X_m + a_m - 1 })
                                          );
+
+                for (size_t k = 0; k < triangles.size(); ++k)
+                {
+                    if ((j > Y_n) && p.shift)
+                    {
+                        is_capacitor |= (i >= (Y_n - b_n)) && is_in_triangle({ i + dn2_n / 2, j }, triangles[k])
+                            || (i <= (Y_n + b_n)) && is_in_triangle({ i - dn2_n / 2, j }, triangles[k]);
+                        is_capacitor_border |= (i >= (Y_n - b_n)) && is_in_triangle({ i + dn2_n / 2, j }, triangles[k])
+                            || (i <= (Y_n + b_n)) && is_in_triangle({ i - dn2_n / 2, j }, triangles[k]);
+                    }
+                    else
+                    {
+                        is_capacitor |= is_in_triangle({ i, j }, triangles[k]);
+                        is_capacitor_border |= is_in_triangle({ i, j }, triangles[k]);
+                    }
+                }
 
                 if (is_border || is_capacitor_border)
                     d.area_map[i][j]  = material::border;
