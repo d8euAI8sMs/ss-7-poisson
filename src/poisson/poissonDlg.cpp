@@ -19,6 +19,8 @@ using namespace model;
 
 CPoissonDlg::CPoissonDlg(CWnd* pParent /*=NULL*/)
 	: CSimulationDialog(CPoissonDlg::IDD, pParent)
+    , dA(1)
+    , dE(1)
     , nA(100)
     , nE(15)
     , A(TRUE)
