@@ -30,6 +30,7 @@ CPoissonDlg::CPoissonDlg(CWnd* pParent /*=NULL*/)
     , p(make_default_parameters())
     , plt(make_plot_data())
     , plt2(make_plot_data())
+    , S(FALSE)
 {
 	m_hIcon = AfxGetApp()->LoadIcon(IDR_MAINFRAME);
 }
@@ -53,7 +54,12 @@ void CPoissonDlg::DoDataExchange(CDataExchange* pDX)
     DDX_Text(pDX, IDC_EDIT6, p.eps);
     DDX_Text(pDX, IDC_EDIT18, p.q1);
     DDX_Text(pDX, IDC_EDIT19, p.q2);
+    DDX_Text(pDX, IDC_EDIT21, p.n1);
+    DDX_Text(pDX, IDC_EDIT22, p.n2);
+    DDX_Text(pDX, IDC_EDIT23, p.dn1);
+    DDX_Text(pDX, IDC_EDIT24, p.dn2);
     DDX_Control(pDX, IDC_PLOT, plot);
+    DDX_Check(pDX, IDC_CHECK3, S);
 }
 
 BEGIN_MESSAGE_MAP(CPoissonDlg, CSimulationDialog)
@@ -63,6 +69,7 @@ BEGIN_MESSAGE_MAP(CPoissonDlg, CSimulationDialog)
     ON_BN_CLICKED(IDC_BUTTON2, &CPoissonDlg::OnBnClickedButton2)
     ON_BN_CLICKED(IDC_CHECK1, &CPoissonDlg::OnBnClickedCheck1)
     ON_BN_CLICKED(IDC_CHECK2, &CPoissonDlg::OnBnClickedCheck2)
+    ON_BN_CLICKED(IDC_CHECK3, &CPoissonDlg::OnBnClickedCheck3)
 END_MESSAGE_MAP()
 
 
@@ -264,4 +271,11 @@ void CPoissonDlg::OnBnClickedCheck2()
 {
     UpdateData(TRUE);
     E_bool = (E != 0);
+}
+
+
+void CPoissonDlg::OnBnClickedCheck3()
+{
+    UpdateData(TRUE);
+    this->p.shift = (S != 0);
 }
