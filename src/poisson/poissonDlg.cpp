@@ -173,66 +173,14 @@ void CPoissonDlg::OnSimulation()
     bool border = false;
     std::vector < plot::point < size_t > > path_a, path_b;
 
-    for (size_t i = 0; i < d.n; ++i)
+    for (size_t l = 0; l < nE; ++l)
     {
-        for (size_t j = 0; j < d.m; ++j)
-        {
-            m = d.area_map[i][j];
-            if (!border && !path_a.empty())
-            {
-                auto ps_a = path_a.front(), pe_a = path_a.back();
-                auto ps_b = path_b.front(), pe_b = path_b.back();
-                for (size_t l = 0; l < nE; ++l)
-                {
-                    hint.push_back({ ps_a.y + ((double) pe_a.y - ps_a.y) / nE * l, (double) pe_a.x });
-                    hint.push_back({ ps_b.y + ((double) pe_b.y - ps_b.y) / nE * l, (double) pe_b.x });
-                }
-                path_a.clear();
-                path_b.clear();
-            }
-            if ((m & material::border_i) && (m & (material::cap1 | material::cap2)))
-            {
-                path_a.emplace_back(i + 1, j);
-                path_b.emplace_back(i - 1, j);
-                border = true;
-            }
-            else
-            {
-                border = false;
-            }
-        }
-    }
-
-    border = false;
-
-    for (size_t j = 0; j < d.m; ++j)
-    {
-        for (size_t i = 0; i < d.n; ++i)
-        {
-            m = d.area_map[i][j];
-            if (!border && !path_a.empty())
-            {
-                auto ps_a = path_a.front(), pe_a = path_a.back();
-                auto ps_b = path_b.front(), pe_b = path_b.back();
-                for (size_t l = 0; l < nE; ++l)
-                {
-                    hint.push_back({ (double) pe_a.y, ps_a.x + ((double) pe_a.x - ps_a.x) / nE * l });
-                    hint.push_back({ (double) pe_b.y, ps_b.x + ((double) pe_b.x - ps_b.x) / nE * l });
-                }
-                path_a.clear();
-                path_b.clear();
-            }
-            if ((m & material::border_j) && (m & (material::cap1 | material::cap2)))
-            {
-                path_a.emplace_back(i, j + 1);
-                path_b.emplace_back(i, j - 1);
-                border = true;
-            }
-            else
-            {
-                border = false;
-            }
-        }
+        hint.push_back({ 1.0, (double) d.n / nE * l });
+        hint.push_back({ (double) d.m - 2, (double) d.n / nE * l });
+        hint.push_back({ (double) d.m / 2 - 2, (double) d.n / nE * l });
+        hint.push_back({ (double) d.m / 2 + 2, (double) d.n / nE * l });
+        hint.push_back({ (double) d.m / nE * l, 1.0 });
+        hint.push_back({ (double) d.m / nE * l, (double) d.n - 2 });
     }
 
     // perform modeling
