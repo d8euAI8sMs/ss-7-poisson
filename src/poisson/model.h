@@ -18,7 +18,8 @@ namespace model
         double a, b, k;
 
         // capacitor params
-        double d;
+        double d, n1, dn1, n2, dn2;
+        bool shift;
 
         // other params
         double dt, dy, dx;
@@ -35,7 +36,8 @@ namespace model
             50, 50, 2,
 
             // capacitor params
-            5,
+            5, 5, 10, 5, 10,
+            false,
 
             // other params
             0.3, 1, 1,
